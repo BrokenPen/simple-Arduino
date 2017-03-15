@@ -49,7 +49,7 @@ void loop() {
   String time_s = timeClient.getFormattedTime();
   timeClient.update();
   Serial.println(time_s); 
-  
+  //getHours(); getMinutes(); also work in NTPClient..
   byte hours    =  time_s.substring(0,2).toInt();                     // initialize hours
   byte minutes  = time_s.substring(3,5).toInt();                   // initialize minutes
   display.printTime(hours, minutes, true);  // display time
