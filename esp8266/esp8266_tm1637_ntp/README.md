@@ -5,8 +5,8 @@ You need the follow libraries
 - https://github.com/bremme/arduino-tm1637
 - https://github.com/esp8266/Arduino
 
-Other
-- http://playground.arduino.cc/Main/TM1637
- 
+Hardware requirement 
+- TM1637
+- ESP8266(nodemcu..,wemos..,..etc..) 
 ---
 last edited : 2017 16 March 16 
