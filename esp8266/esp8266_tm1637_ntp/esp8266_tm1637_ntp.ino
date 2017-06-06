@@ -9,8 +9,8 @@
 //#include <WiFi101.h> // for WiFi 101 shield or MKR1000
 #include <WiFiUdp.h>
 
-const char *ssid     = "BROKENPEN-RPI";
-const char *password = "rpiBROKENPEN";
+const char *ssid     = "you_wifi_ssid";
+const char *password = "you_wifi_password";
 
 WiFiUDP ntpUDP;
 
