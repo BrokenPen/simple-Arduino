@@ -1,0 +1,108 @@
+// Example testing sketch for various DHT humidity/temperature sensors
+// Written by ladyada, public domain
+
+// REQUIRES the following Arduino libraries:
+// - DHT Sensor Library: https://github.com/adafruit/DHT-sensor-library
+// - Adafruit Unified Sensor Lib: https://github.com/adafruit/Adafruit_Sensor
+
+#include "DHT.h"
+
+#define DHTPIN 2     // Digital pin connected to the DHT sensor
+// Feather HUZZAH ESP8266 note: use pins 3, 4, 5, 12, 13 or 14 --
+// Pin 15 can work but DHT must be disconnected during program upload.
+
+// Uncomment whatever type you're using!
+#define DHTTYPE DHT11   // DHT 11
+DHT dht(DHTPIN, DHTTYPE);
+
+#include <NTPClient.h>
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
+//https://github.com/agnunez/ESP8266-I2C-LCD1602
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h> 
+
+LiquidCrystal_I2C lcd(0x3F,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
+  
+uint8_t heart[8] = {0x0,0xa,0x1f,0x1f,0xe,0x4,0x0};  // example sprite bitmap
+
+const char *ssid     = "";
+const char *password = "";
+
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+const long utcOffsetInSeconds = 28800; // 3600 * 8 // UTC+8
+const long updateFq = 60000;
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds, updateFq);
+
+float hif;
+float hic;
+
+void setup(){
+
+  WiFi.begin(ssid, password);
+
+  while ( WiFi.status() != WL_CONNECTED ) {
+    delay ( 500 );
+    Serial.print ( "." );
+  }
+
+  timeClient.begin();
+
+  lcd.begin(4,5);      // In ESP8266-01, SDA=0, SCL=2               
+  lcd.backlight();
+  lcd.createChar(1, heart);
+
+  dht.begin();
+}
+
+
+
+void loop() {
+  
+  timeClient.update();
+
+  //Serial.println(timeClient.getFormattedTime());
+
+  // Wait a few seconds between measurements.
+  delay(2000);
+
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float f = dht.readTemperature(true);
+
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    return;
+  } else {
+     // Compute heat index in Fahrenheit (the default)
+    hif = dht.computeHeatIndex(f, h);
+  // Compute heat index in Celsius (isFahreheit = false)
+    hic = dht.computeHeatIndex(t, h, false);
+  }
+
+  lcd.home();                // At column=0, row=0  
+  lcd.print(timeClient.getFormattedDate());
+  
+  lcd.setCursor(0, 1);
+  lcd.print(timeClient.getFormattedTime().substring(0,5));
+  delay(500);
+
+  
+  lcd.setCursor(8, 1);
+  lcd.print( String( int(hic) ) + "C  " + String( int(h) ) + "%" );
+ 
+  
+  lcd.setCursor(15, 0);      // At column=10, row=0
+  lcd.write(byte(1));
+  delay(500);
+
+  // delay 10s-_-
+  delay(25000);
+}
